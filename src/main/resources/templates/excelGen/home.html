@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .upload-section {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        input[type="file"] {
+            padding: 10px;
+            border: 2px dashed #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #45a049;
+        }
+        .btn-secondary {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #1976D2;
+        }
+        .btn-danger {
+            background-color: #f44336;
+            color: white;
+        }
+        .btn-danger:hover {
+            background-color: #d32f2f;
+        }
+        .btn-warning {
+            background-color: #ff9800;
+            color: white;
+        }
+        .btn-warning:hover {
+            background-color: #f57c00;
+        }
+        .btn-small {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+        .message {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: 600;
+        }
+        th.header-cell {
+            position: relative;
+        }
+        th .header-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        th .header-text {
+            flex: 1;
+            min-width: 50px;
+        }
+        th .col-btn {
+            background-color: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            border-radius: 3px;
+            padding: 2px 6px;
+            cursor: pointer;
+            font-size: 11px;
+        }
+        th .col-btn:hover {
+            background-color: rgba(255,255,255,0.5);
+        }
+        th .col-btn.delete:hover {
+            background-color: rgba(255,0,0,0.7);
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        td[contenteditable="true"]:focus,
+        th .header-text[contenteditable="true"]:focus {
+            outline: 2px solid #2196F3;
+            background-color: #e3f2fd;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .info {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        .row-number {
+            background-color: #f0f0f0;
+            color: #666;
+            font-weight: 500;
+            width: 50px;
+            text-align: center;
+        }
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+<body>
+<h1>📊 Excel Generator</h1>
+
+<!-- 메시지 표시 -->
+<div th:if="${message}" class="message success" th:text="${message}"></div>
+<div th:if="${error}" class="message error" th:text="${error}"></div>
+
+<!-- 파일 업로드 -->
+<div class="card">
+    <h3>파일 업로드</h3>
+    <form th:action="@{/excel/upload}" method="post" enctype="multipart/form-data" class="upload-section">
+        <input type="file" name="file" accept=".xlsx,.xls" required>
+        <button type="submit" class="btn-primary">업로드</button>
+    </form>
+    <p class="info">
+        💡 첫 번째 파일의 컬럼 구조를 기준으로 합니다.
+        추가 파일은 같은 컬럼 구조여야 병합됩니다.
+    </p>
+</div>
+
+<!-- 데이터 테이블 -->
+<div class="card">
+    <h3>데이터 테이블</h3>
+
+    <div th:if="${excelData.headers.isEmpty()}" class="empty-state">
+        <p>📁 엑셀 파일을 업로드하면 여기에 표시됩니다.</p>
+    </div>
+
+    <div th:unless="${excelData.headers.isEmpty()}">
+        <p class="info">총 <strong th:text="${excelData.totalRows}">0</strong>개 행 | 셀을 클릭하여 수정할 수 있습니다.</p>
+
+        <!-- 열 추가 툴바 -->
+        <div class="toolbar">
+            <button onclick="addColumn()" class="btn-primary btn-small">➕ 열 추가</button>
+        </div>
+
+        <div class="table-container">
+            <table id="dataTable">
+                <thead>
+                <tr>
+                    <th class="row-number">#</th>
+                    <th th:each="header : ${excelData.headers}" class="header-cell">
+                        <div class="header-content">
+                            <button class="col-btn" onclick="moveColumn(this, -1)" title="왼쪽으로">◀</button>
+                            <span class="header-text" contenteditable="true" th:text="${header}"></span>
+                            <button class="col-btn" onclick="moveColumn(this, 1)" title="오른쪽으로">▶</button>
+                            <button class="col-btn delete" onclick="deleteColumn(this)" title="열 삭제">✕</button>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="row, rowStat : ${excelData.rows}">
+                    <td class="row-number" th:text="${rowStat.index + 1}"></td>
+                    <td th:each="cell : ${row}"
+                        th:text="${cell}"
+                        contenteditable="true"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions">
+            <button onclick="saveChanges()" class="btn-warning">💾 변경사항 저장</button>
+            <a th:href="@{/excel/download}">
+                <button type="button" class="btn-secondary">📥 엑셀 다운로드</button>
+            </a>
+            <form th:action="@{/excel/clear}" method="post" style="display:inline;"
+                  onsubmit="return confirm('정말 초기화하시겠습니까?');">
+                <button type="submit" class="btn-danger">🗑️ 초기화</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 열 추가
+    function addColumn() {
+        const columnName = prompt('추가할 열 이름을 입력하세요:');
+        if (!columnName || columnName.trim() === '') return;
+
+        const table = document.getElementById('dataTable');
+
+        // 헤더에 새 열 추가
+        const headerRow = table.querySelector('thead tr');
+        const newTh = document.createElement('th');
+        newTh.className = 'header-cell';
+        newTh.innerHTML = `
+                <div class="header-content">
+                    <button class="col-btn" onclick="moveColumn(this, -1)" title="왼쪽으로">◀</button>
+                    <span class="header-text" contenteditable="true">${columnName.trim()}</span>
+                    <button class="col-btn" onclick="moveColumn(this, 1)" title="오른쪽으로">▶</button>
+                    <button class="col-btn delete" onclick="deleteColumn(this)" title="열 삭제">✕</button>
+                </div>
+            `;
+        headerRow.appendChild(newTh);
+
+        // 각 행에 빈 셀 추가
+        const bodyRows = table.querySelectorAll('tbody tr');
+        bodyRows.forEach(row => {
+            const newTd = document.createElement('td');
+            newTd.contentEditable = 'true';
+            newTd.textContent = '';
+            row.appendChild(newTd);
+        });
+    }
+
+    // 열 삭제
+    function deleteColumn(btn) {
+        if (!confirm('이 열을 삭제하시겠습니까?')) return;
+
+        const th = btn.closest('th');
+        const headerRow = th.parentElement;
+        const colIndex = Array.from(headerRow.children).indexOf(th);
+
+        // 헤더 삭제
+        th.remove();
+
+        // 각 행에서 해당 열 삭제
+        const bodyRows = document.querySelectorAll('#dataTable tbody tr');
+        bodyRows.forEach(row => {
+            const cells = row.children;
+            if (cells[colIndex]) {
+                cells[colIndex].remove();
+            }
+        });
+    }
+
+    // 열 이동
+    function moveColumn(btn, direction) {
+        const th = btn.closest('th');
+        const headerRow = th.parentElement;
+        const headers = Array.from(headerRow.children);
+        const colIndex = headers.indexOf(th);
+
+        // 첫 번째 열(#)은 제외하고 계산
+        const targetIndex = colIndex + direction;
+
+        // 이동 불가 체크 (# 열 다음이 첫 번째, 마지막 열)
+        if (targetIndex < 1 || targetIndex >= headers.length) {
+            return;
+        }
+
+        const bodyRows = document.querySelectorAll('#dataTable tbody tr');
+
+        if (direction === -1) {
+            // 왼쪽으로 이동
+            headerRow.insertBefore(th, headers[targetIndex]);
+            bodyRows.forEach(row => {
+                const cells = Array.from(row.children);
+                row.insertBefore(cells[colIndex], cells[targetIndex]);
+            });
+        } else {
+            // 오른쪽으로 이동
+            headerRow.insertBefore(headers[targetIndex], th);
+            bodyRows.forEach(row => {
+                const cells = Array.from(row.children);
+                row.insertBefore(cells[targetIndex], cells[colIndex]);
+            });
+        }
+    }
+
+    // 변경사항 저장
+    function saveChanges() {
+        const table = document.getElementById('dataTable');
+        const headerTexts = table.querySelectorAll('thead th .header-text');
+        const rows = table.querySelectorAll('tbody tr');
+
+        const headers = Array.from(headerTexts).map(el => el.innerText.trim());
+        const data = Array.from(rows).map(row => {
+            const cells = row.querySelectorAll('td[contenteditable="true"]');
+            return Array.from(cells).map(cell => cell.innerText.trim());
+        });
+
+        fetch('/excel/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                headers: headers,
+                rows: data
+            })
+        })
+            .then(response => response.text())
+            .then(result => {
+                alert(result);
+            })
+            .catch(error => {
+                alert('저장 중 오류가 발생했습니다.');
+                console.error('Error:', error);
+            });
+    }
+</script>
+</body>
+</html>
