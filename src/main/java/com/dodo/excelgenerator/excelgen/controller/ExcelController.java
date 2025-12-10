@@ -18,6 +18,8 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 @Controller
@@ -42,8 +44,81 @@ public class ExcelController {
     }
 
     /**
-     * 엑셀 파일 업로드
+     * 다중 엑셀 파일 업로드 (30~40개 한번에)
      */
+    @PostMapping("/upload-multiple")
+    public String uploadMultiple(@RequestParam("files") List<MultipartFile> files,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+
+        // 빈 파일 체크
+        if (files == null || files.isEmpty() || files.stream().allMatch(MultipartFile::isEmpty)) {
+            redirectAttributes.addFlashAttribute("error", "파일을 선택해주세요.");
+            return "redirect:/excel";
+        }
+
+        // 유효한 파일만 필터링
+        List<MultipartFile> validFiles = files.stream()
+                .filter(f -> !f.isEmpty())
+                .toList();
+
+        if (validFiles.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "유효한 파일이 없습니다.");
+            return "redirect:/excel";
+        }
+
+        int successCount = 0;
+        int failCount = 0;
+        List<String> failedFiles = new ArrayList<>();
+        ExcelResponseDto mergedData = (ExcelResponseDto) session.getAttribute(SESSION_KEY);
+
+        for (MultipartFile file : validFiles) {
+            try {
+                ExcelResponseDto newData = excelService.parseExcel(file);
+
+                if (mergedData == null || mergedData.getHeaders().isEmpty()) {
+                    // 첫 번째 파일 - 기준 데이터로 설정
+                    mergedData = newData;
+                    successCount++;
+                } else {
+                    // 이후 파일들 - 헤더 검증 후 병합
+                    if (excelService.validateHeaders(mergedData.getHeaders(), newData.getHeaders())) {
+                        mergedData = excelService.mergeData(mergedData, newData);
+                        successCount++;
+                    } else {
+                        failCount++;
+                        failedFiles.add(file.getOriginalFilename() + " (컬럼 불일치)");
+                    }
+                }
+            } catch (IOException e) {
+                log.error("파일 처리 실패: {}", file.getOriginalFilename(), e);
+                failCount++;
+                failedFiles.add(file.getOriginalFilename() + " (처리 오류)");
+            }
+        }
+
+        // 세션에 저장
+        if (mergedData != null && !mergedData.getHeaders().isEmpty()) {
+            session.setAttribute(SESSION_KEY, mergedData);
+        }
+
+        // 결과 메시지 생성
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("✅ %d개 파일 병합 완료 (총 %d행)",
+                successCount, mergedData != null ? mergedData.getTotalRows() : 0));
+
+        if (failCount > 0) {
+            message.append(String.format("\n⚠️ %d개 파일 실패", failCount));
+            redirectAttributes.addFlashAttribute("failedFiles", failedFiles);
+        }
+
+        redirectAttributes.addFlashAttribute("message", message.toString());
+
+        return "redirect:/excel";
+    }
+
+    // ===== 기존 단일 파일 업로드 (주석 처리) =====
+    /*
     @PostMapping("/upload")
     public String upload(@RequestParam("file") MultipartFile file,
                          HttpSession session,
@@ -82,6 +157,7 @@ public class ExcelController {
 
         return "redirect:/excel";
     }
+    */
 
     /**
      * 테이블 데이터 수정 (AJAX)

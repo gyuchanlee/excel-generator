@@ -37,6 +37,12 @@
             border: 2px dashed #ddd;
             border-radius: 4px;
             cursor: pointer;
+            flex: 1;
+            min-width: 200px;
+        }
+        input[type="file"]:hover {
+            border-color: #4CAF50;
+            background-color: #f9fff9;
         }
         button {
             padding: 10px 20px;
@@ -82,6 +88,7 @@
             padding: 10px 15px;
             border-radius: 4px;
             margin-bottom: 15px;
+            white-space: pre-line;
         }
         .message.success {
             background-color: #d4edda;
@@ -92,6 +99,22 @@
             background-color: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
+        }
+        .message.warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+        .failed-files {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .failed-files ul {
+            margin: 5px 0 0 20px;
+            padding: 0;
         }
         .table-container {
             overflow-x: auto;
@@ -179,6 +202,21 @@
             margin-bottom: 10px;
             flex-wrap: wrap;
         }
+        .file-count {
+            display: inline-block;
+            padding: 4px 10px;
+            background-color: #e3f2fd;
+            color: #1976D2;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        .upload-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -188,7 +226,31 @@
 <div th:if="${message}" class="message success" th:text="${message}"></div>
 <div th:if="${error}" class="message error" th:text="${error}"></div>
 
-<!-- 파일 업로드 -->
+<!-- 실패한 파일 목록 -->
+<div th:if="${failedFiles}" class="failed-files">
+    <strong>⚠️ 실패한 파일:</strong>
+    <ul>
+        <li th:each="failedFile : ${failedFiles}" th:text="${failedFile}"></li>
+    </ul>
+</div>
+
+<!-- 다중 파일 업로드 -->
+<div class="card">
+    <h3>📁 다중 파일 업로드</h3>
+    <form th:action="@{/excel/upload-multiple}" method="post" enctype="multipart/form-data" class="upload-section">
+        <input type="file" name="files" accept=".xlsx,.xls" multiple required id="fileInput">
+        <button type="submit" class="btn-primary">🚀 일괄 업로드</button>
+    </form>
+    <div class="upload-hint">
+        <span class="file-count" id="fileCount">선택된 파일: 0개</span>
+    </div>
+    <p class="info">
+        💡 동일한 컬럼 구조의 엑셀 파일을 여러 개 선택하세요. (Ctrl/Cmd + 클릭으로 다중 선택)<br>
+        첫 번째 파일의 컬럼 구조를 기준으로 병합됩니다.
+    </p>
+</div>
+
+<!-- 기존 단일 파일 업로드 (주석 처리)
 <div class="card">
     <h3>파일 업로드</h3>
     <form th:action="@{/excel/upload}" method="post" enctype="multipart/form-data" class="upload-section">
@@ -200,6 +262,7 @@
         추가 파일은 같은 컬럼 구조여야 병합됩니다.
     </p>
 </div>
+-->
 
 <!-- 데이터 테이블 -->
 <div class="card">
@@ -257,6 +320,12 @@
 </div>
 
 <script>
+    // 파일 선택 시 개수 표시
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        const count = e.target.files.length;
+        document.getElementById('fileCount').textContent = '선택된 파일: ' + count + '개';
+    });
+
     // 열 추가
     function addColumn() {
         const columnName = prompt('추가할 열 이름을 입력하세요:');
