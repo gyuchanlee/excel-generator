@@ -10,7 +10,7 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
             background-color: #f5f5f5;
@@ -26,6 +26,80 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
+        .card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 8px;
+        }
+
+        /* 아코디언 스타일 */
+        .accordion {
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .accordion-header {
+            padding: 15px 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            user-select: none;
+            transition: background-color 0.2s;
+        }
+        .accordion-header:hover {
+            background-color: #f8f9fa;
+        }
+        .accordion-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .accordion-header .icon {
+            font-size: 20px;
+        }
+        .accordion-header .arrow {
+            transition: transform 0.3s;
+            font-size: 14px;
+            color: #666;
+        }
+        .accordion.active .accordion-header .arrow {
+            transform: rotate(180deg);
+        }
+        .accordion-header .badge {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: normal;
+        }
+        .badge-blue {
+            background-color: #e3f2fd;
+            color: #1976D2;
+        }
+        .badge-purple {
+            background-color: #f3e5f5;
+            color: #7B1FA2;
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            padding: 0 20px;
+        }
+        .accordion.active .accordion-content {
+            max-height: 1500px;
+            padding: 0 20px 20px 20px;
+        }
+
+        /* 폼 스타일 */
         .upload-section {
             display: flex;
             gap: 10px;
@@ -43,6 +117,13 @@
         input[type="file"]:hover {
             border-color: #4CAF50;
             background-color: #f9fff9;
+        }
+        input[type="number"] {
+            width: 80px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
         }
         button {
             padding: 10px 20px;
@@ -80,10 +161,20 @@
         .btn-warning:hover {
             background-color: #f57c00;
         }
+        .btn-outline {
+            background-color: white;
+            color: #666;
+            border: 1px solid #ddd;
+        }
+        .btn-outline:hover {
+            background-color: #f5f5f5;
+        }
         .btn-small {
             padding: 4px 8px;
             font-size: 12px;
         }
+
+        /* 메시지 */
         .message {
             padding: 10px 15px;
             border-radius: 4px;
@@ -100,11 +191,6 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        .message.warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
         .failed-files {
             margin-top: 10px;
             padding: 10px;
@@ -116,6 +202,92 @@
             margin: 5px 0 0 20px;
             padding: 0;
         }
+
+        /* 설정 영역 */
+        .config-section {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+        }
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .config-group {
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+        }
+        .config-group h4 {
+            margin: 0 0 12px 0;
+            color: #495057;
+            font-size: 14px;
+        }
+        .config-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .config-row:last-child {
+            margin-bottom: 0;
+        }
+        .config-row label {
+            min-width: 100px;
+            font-size: 13px;
+            color: #666;
+        }
+        .config-row .hint {
+            font-size: 11px;
+            color: #999;
+        }
+        .config-actions {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* 엑셀 미리보기 */
+        .excel-preview {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            overflow-x: auto;
+        }
+        .excel-preview table {
+            font-size: 11px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        .excel-preview th {
+            background-color: #6c757d;
+            color: white;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+        }
+        .excel-preview td {
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+        }
+        .excel-preview .highlight-pivot {
+            background-color: #fff3cd !important;
+        }
+        .excel-preview .highlight-left {
+            background-color: #d4edda !important;
+        }
+        .excel-preview .highlight-right {
+            background-color: #cce5ff !important;
+        }
+
+        /* 테이블 스타일 */
         .table-container {
             overflow-x: auto;
             margin-top: 15px;
@@ -210,11 +382,6 @@
             border-radius: 12px;
             font-size: 13px;
             font-weight: 500;
-        }
-        .upload-hint {
-            display: flex;
-            align-items: center;
-            gap: 8px;
             margin-top: 8px;
         }
     </style>
@@ -234,48 +401,201 @@
     </ul>
 </div>
 
-<!-- 다중 파일 업로드 -->
-<div class="card">
-    <h3>📁 다중 파일 업로드</h3>
-    <form th:action="@{/excel/upload-multiple}" method="post" enctype="multipart/form-data" class="upload-section">
-        <input type="file" name="files" accept=".xlsx,.xls" multiple required id="fileInput">
-        <button type="submit" class="btn-primary">🚀 일괄 업로드</button>
-    </form>
-    <div class="upload-hint">
-        <span class="file-count" id="fileCount">선택된 파일: 0개</span>
+<!-- ===== 아코디언 1: 일반 엑셀 업로드 ===== -->
+<div class="accordion" id="accordion1">
+    <div class="accordion-header" onclick="toggleAccordion('accordion1')">
+        <h3>
+            <span class="icon">📁</span>
+            일반 엑셀 업로드
+            <span class="badge badge-blue">동일 구조 병합</span>
+        </h3>
+        <span class="arrow">▼</span>
     </div>
-    <p class="info">
-        💡 동일한 컬럼 구조의 엑셀 파일을 여러 개 선택하세요. (Ctrl/Cmd + 클릭으로 다중 선택)<br>
-        첫 번째 파일의 컬럼 구조를 기준으로 병합됩니다.
-    </p>
+    <div class="accordion-content">
+        <p class="info" style="margin-top:0;">
+            💡 동일한 컬럼 구조의 엑셀 파일들을 병합합니다. 첫 번째 파일의 헤더를 기준으로 합니다.
+        </p>
+        <form th:action="@{/excel/upload-multiple}" method="post" enctype="multipart/form-data" class="upload-section">
+            <input type="file" name="files" accept=".xlsx,.xls" multiple required id="normalFileInput">
+            <button type="submit" class="btn-primary">📤 업로드 및 병합</button>
+        </form>
+        <span class="file-count" id="normalFileCount">선택된 파일: 0개</span>
+    </div>
 </div>
 
-<!-- 기존 단일 파일 업로드 (주석 처리)
-<div class="card">
-    <h3>파일 업로드</h3>
-    <form th:action="@{/excel/upload}" method="post" enctype="multipart/form-data" class="upload-section">
-        <input type="file" name="file" accept=".xlsx,.xls" required>
-        <button type="submit" class="btn-primary">업로드</button>
-    </form>
-    <p class="info">
-        💡 첫 번째 파일의 컬럼 구조를 기준으로 합니다.
-        추가 파일은 같은 컬럼 구조여야 병합됩니다.
-    </p>
-</div>
--->
+<!-- ===== 아코디언 2: 템플릿 파싱 업로드 ===== -->
+<div class="accordion" id="accordion2">
+    <div class="accordion-header" onclick="toggleAccordion('accordion2')">
+        <h3>
+            <span class="icon">🔧</span>
+            템플릿 파싱 업로드
+            <span class="badge badge-purple">피벗+분리테이블</span>
+        </h3>
+        <span class="arrow">▼</span>
+    </div>
+    <div class="accordion-content">
+        <p class="info" style="margin-top:0;">
+            💡 피벗 테이블(회사/코드)과 분리된 데이터 테이블을 추출하여 하나로 통합합니다.
+        </p>
+        <form th:action="@{/excel/upload-template}" method="post" enctype="multipart/form-data" class="upload-section">
+            <input type="file" name="files" accept=".xlsx,.xls" multiple required id="templateFileInput">
+            <button type="submit" class="btn-secondary">🚀 파싱 및 병합</button>
+        </form>
+        <span class="file-count" id="templateFileCount">선택된 파일: 0개</span>
 
-<!-- 데이터 테이블 -->
+        <!-- 템플릿 설정 -->
+        <div class="config-section">
+            <h4 style="margin-top:0;">⚙️ 파싱 설정</h4>
+            <form th:action="@{/excel/config}" method="post">
+                <div class="config-grid">
+                    <!-- 피벗 테이블 설정 -->
+                    <div class="config-group">
+                        <h4>📌 피벗 테이블 위치</h4>
+                        <div class="config-row">
+                            <label>회사 위치:</label>
+                            <input type="number" name="companyRow" th:value="${config.companyRow}" min="0"> 행
+                            <input type="number" name="companyCol" th:value="${config.companyCol}" min="0"> 열
+                        </div>
+                        <div class="config-row">
+                            <label>코드 위치:</label>
+                            <input type="number" name="codeRow" th:value="${config.codeRow}" min="0"> 행
+                            <input type="number" name="codeCol" th:value="${config.codeCol}" min="0"> 열
+                        </div>
+                        <div class="config-row">
+                            <small class="hint">💡 0부터 시작 (A=0, B=1, 1행=0, 2행=1)</small>
+                        </div>
+                    </div>
+
+                    <!-- 데이터 테이블 설정 -->
+                    <div class="config-group">
+                        <h4>📋 데이터 테이블 위치</h4>
+                        <div class="config-row">
+                            <label>시작 행:</label>
+                            <input type="number" name="dataStartRow" th:value="${config.dataStartRow}" min="0">
+                            <span class="hint">(헤더 행)</span>
+                        </div>
+                        <div class="config-row">
+                            <label>왼쪽 테이블 열:</label>
+                            <input type="number" name="leftTableStartCol" th:value="${config.leftTableStartCol}" min="0">
+                        </div>
+                        <div class="config-row">
+                            <label>오른쪽 테이블 열:</label>
+                            <input type="number" name="rightTableStartCol" th:value="${config.rightTableStartCol}" min="0">
+                        </div>
+                        <div class="config-row">
+                            <label>컬럼 수:</label>
+                            <input type="number" name="colCount" th:value="${config.colCount}" min="1">
+                            <span class="hint">(이름,부서,직급 = 3)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 엑셀 구조 미리보기 -->
+                <div class="excel-preview">
+                    <p style="margin-top:0;"><strong>📊 엑셀 구조 미리보기</strong></p>
+                    <table>
+                        <thead>
+                        <tr>
+                            <th></th>
+                            <th>A(0)</th>
+                            <th>B(1)</th>
+                            <th>C(2)</th>
+                            <th>D(3)</th>
+                            <th>E(4)</th>
+                            <th>F(5)</th>
+                            <th>G(6)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td><strong>0</strong></td>
+                            <td class="highlight-pivot">회사</td>
+                            <td class="highlight-pivot">삼성전자</td>
+                            <td>자금</td>
+                            <td>1000</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><strong>1</strong></td>
+                            <td class="highlight-pivot">코드</td>
+                            <td class="highlight-pivot">OO</td>
+                            <td>위치</td>
+                            <td>수원</td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><strong>2</strong></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td><strong>3</strong></td>
+                            <td class="highlight-left">이름</td>
+                            <td class="highlight-left">부서</td>
+                            <td class="highlight-left">직급</td>
+                            <td></td>
+                            <td class="highlight-right">이름</td>
+                            <td class="highlight-right">부서</td>
+                            <td class="highlight-right">직급</td>
+                        </tr>
+                        <tr>
+                            <td><strong>4</strong></td>
+                            <td class="highlight-left">홍길동</td>
+                            <td class="highlight-left">영업팀</td>
+                            <td class="highlight-left">부장</td>
+                            <td></td>
+                            <td class="highlight-right">김철수</td>
+                            <td class="highlight-right">개발팀</td>
+                            <td class="highlight-right">과장</td>
+                        </tr>
+                        <tr>
+                            <td><strong>5</strong></td>
+                            <td class="highlight-left">강감찬</td>
+                            <td class="highlight-left">마케팅팀</td>
+                            <td class="highlight-left">차장</td>
+                            <td></td>
+                            <td class="highlight-right">이영희</td>
+                            <td class="highlight-right">인사팀</td>
+                            <td class="highlight-right">대리</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <p style="margin-top:10px; margin-bottom:0; font-size:11px;">
+                        <span style="background:#fff3cd;padding:2px 6px;border-radius:3px;">🟡 피벗 추출</span>
+                        <span style="background:#d4edda;padding:2px 6px;border-radius:3px;margin-left:8px;">🟢 왼쪽 테이블</span>
+                        <span style="background:#cce5ff;padding:2px 6px;border-radius:3px;margin-left:8px;">🔵 오른쪽 테이블</span>
+                    </p>
+                </div>
+
+                <div class="config-actions">
+                    <button type="submit" class="btn-primary btn-small">💾 설정 저장</button>
+                    <button type="button" class="btn-outline btn-small" onclick="resetConfig()">↩️ 기본값</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 데이터 테이블 ===== -->
 <div class="card">
-    <h3>데이터 테이블</h3>
+    <h3>📋 데이터 테이블</h3>
 
     <div th:if="${excelData.headers.isEmpty()}" class="empty-state">
-        <p>📁 엑셀 파일을 업로드하면 여기에 표시됩니다.</p>
+        <p>📁 엑셀 파일을 업로드하면 여기에 데이터가 표시됩니다.</p>
     </div>
 
     <div th:unless="${excelData.headers.isEmpty()}">
         <p class="info">총 <strong th:text="${excelData.totalRows}">0</strong>개 행 | 셀을 클릭하여 수정할 수 있습니다.</p>
 
-        <!-- 열 추가 툴바 -->
         <div class="toolbar">
             <button onclick="addColumn()" class="btn-primary btn-small">➕ 열 추가</button>
         </div>
@@ -320,10 +640,35 @@
 </div>
 
 <script>
+    // 아코디언 토글 (하나만 열리도록)
+    function toggleAccordion(id) {
+        const accordions = document.querySelectorAll('.accordion');
+        const target = document.getElementById(id);
+
+        accordions.forEach(acc => {
+            if (acc.id === id) {
+                acc.classList.toggle('active');
+            } else {
+                acc.classList.remove('active');
+            }
+        });
+    }
+
+    // 설정 기본값으로 리셋
+    function resetConfig() {
+        if (confirm('설정을 기본값으로 초기화하시겠습니까?')) {
+            fetch('/excel/config/reset', { method: 'POST' })
+                .then(() => location.reload());
+        }
+    }
+
     // 파일 선택 시 개수 표시
-    document.getElementById('fileInput').addEventListener('change', function(e) {
-        const count = e.target.files.length;
-        document.getElementById('fileCount').textContent = '선택된 파일: ' + count + '개';
+    document.getElementById('normalFileInput').addEventListener('change', function(e) {
+        document.getElementById('normalFileCount').textContent = '선택된 파일: ' + e.target.files.length + '개';
+    });
+
+    document.getElementById('templateFileInput').addEventListener('change', function(e) {
+        document.getElementById('templateFileCount').textContent = '선택된 파일: ' + e.target.files.length + '개';
     });
 
     // 열 추가
@@ -332,22 +677,19 @@
         if (!columnName || columnName.trim() === '') return;
 
         const table = document.getElementById('dataTable');
-
-        // 헤더에 새 열 추가
         const headerRow = table.querySelector('thead tr');
         const newTh = document.createElement('th');
         newTh.className = 'header-cell';
         newTh.innerHTML = `
-                <div class="header-content">
-                    <button class="col-btn" onclick="moveColumn(this, -1)" title="왼쪽으로">◀</button>
-                    <span class="header-text" contenteditable="true">${columnName.trim()}</span>
-                    <button class="col-btn" onclick="moveColumn(this, 1)" title="오른쪽으로">▶</button>
-                    <button class="col-btn delete" onclick="deleteColumn(this)" title="열 삭제">✕</button>
-                </div>
-            `;
+            <div class="header-content">
+                <button class="col-btn" onclick="moveColumn(this, -1)" title="왼쪽으로">◀</button>
+                <span class="header-text" contenteditable="true">${columnName.trim()}</span>
+                <button class="col-btn" onclick="moveColumn(this, 1)" title="오른쪽으로">▶</button>
+                <button class="col-btn delete" onclick="deleteColumn(this)" title="열 삭제">✕</button>
+            </div>
+        `;
         headerRow.appendChild(newTh);
 
-        // 각 행에 빈 셀 추가
         const bodyRows = table.querySelectorAll('tbody tr');
         bodyRows.forEach(row => {
             const newTd = document.createElement('td');
@@ -365,10 +707,8 @@
         const headerRow = th.parentElement;
         const colIndex = Array.from(headerRow.children).indexOf(th);
 
-        // 헤더 삭제
         th.remove();
 
-        // 각 행에서 해당 열 삭제
         const bodyRows = document.querySelectorAll('#dataTable tbody tr');
         bodyRows.forEach(row => {
             const cells = row.children;
@@ -384,26 +724,19 @@
         const headerRow = th.parentElement;
         const headers = Array.from(headerRow.children);
         const colIndex = headers.indexOf(th);
-
-        // 첫 번째 열(#)은 제외하고 계산
         const targetIndex = colIndex + direction;
 
-        // 이동 불가 체크 (# 열 다음이 첫 번째, 마지막 열)
-        if (targetIndex < 1 || targetIndex >= headers.length) {
-            return;
-        }
+        if (targetIndex < 1 || targetIndex >= headers.length) return;
 
         const bodyRows = document.querySelectorAll('#dataTable tbody tr');
 
         if (direction === -1) {
-            // 왼쪽으로 이동
             headerRow.insertBefore(th, headers[targetIndex]);
             bodyRows.forEach(row => {
                 const cells = Array.from(row.children);
                 row.insertBefore(cells[colIndex], cells[targetIndex]);
             });
         } else {
-            // 오른쪽으로 이동
             headerRow.insertBefore(headers[targetIndex], th);
             bodyRows.forEach(row => {
                 const cells = Array.from(row.children);
@@ -426,18 +759,11 @@
 
         fetch('/excel/update', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                headers: headers,
-                rows: data
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ headers: headers, rows: data })
         })
             .then(response => response.text())
-            .then(result => {
-                alert(result);
-            })
+            .then(result => alert(result))
             .catch(error => {
                 alert('저장 중 오류가 발생했습니다.');
                 console.error('Error:', error);

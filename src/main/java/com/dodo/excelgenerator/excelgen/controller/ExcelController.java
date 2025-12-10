@@ -2,7 +2,9 @@ package com.dodo.excelgenerator.excelgen.controller;
 
 import com.dodo.excelgenerator.excelgen.dto.ExcelRequestDto;
 import com.dodo.excelgenerator.excelgen.dto.ExcelResponseDto;
+import com.dodo.excelgenerator.excelgen.dto.TemplateConfigDto;
 import com.dodo.excelgenerator.excelgen.service.ExcelService;
+import com.dodo.excelgenerator.excelgen.service.TemplateParsingService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +30,10 @@ import java.util.List;
 public class ExcelController {
 
     private final ExcelService excelService;
+    private final TemplateParsingService templateParsingService;
+
     private static final String SESSION_KEY = "excelData";
+    private static final String CONFIG_KEY = "templateConfig";
 
     /**
      * 메인 페이지
@@ -39,12 +44,24 @@ public class ExcelController {
         if (data == null) {
             data = ExcelResponseDto.empty();
         }
+
+        // 템플릿 설정 (없으면 기본값)
+        TemplateConfigDto config = (TemplateConfigDto) session.getAttribute(CONFIG_KEY);
+        if (config == null) {
+            config = TemplateConfigDto.defaultConfig();
+        }
+
         model.addAttribute("excelData", data);
+        model.addAttribute("config", config);
         return "excelGen/home";
     }
 
+    // ===================================================================
+    // 일반 엑셀 업로드 (동일 구조 엑셀 병합)
+    // ===================================================================
+
     /**
-     * 다중 엑셀 파일 업로드 (30~40개 한번에)
+     * 일반 엑셀 - 다중 파일 업로드 및 병합
      */
     @PostMapping("/upload-multiple")
     public String uploadMultiple(@RequestParam("files") List<MultipartFile> files,
@@ -117,8 +134,9 @@ public class ExcelController {
         return "redirect:/excel";
     }
 
-    // ===== 기존 단일 파일 업로드 (주석 처리) =====
-    /*
+    /**
+     * 일반 엑셀 - 단일 파일 업로드
+     */
     @PostMapping("/upload")
     public String upload(@RequestParam("file") MultipartFile file,
                          HttpSession session,
@@ -157,7 +175,126 @@ public class ExcelController {
 
         return "redirect:/excel";
     }
-    */
+
+    // ===================================================================
+    // 템플릿 파싱 업로드 (피벗 + 분리 테이블 → 통합)
+    // ===================================================================
+
+    /**
+     * 템플릿 설정 저장
+     */
+    @PostMapping("/config")
+    public String saveConfig(@RequestParam("companyRow") int companyRow,
+                             @RequestParam("companyCol") int companyCol,
+                             @RequestParam("codeRow") int codeRow,
+                             @RequestParam("codeCol") int codeCol,
+                             @RequestParam("dataStartRow") int dataStartRow,
+                             @RequestParam("leftTableStartCol") int leftTableStartCol,
+                             @RequestParam("rightTableStartCol") int rightTableStartCol,
+                             @RequestParam("colCount") int colCount,
+                             HttpSession session,
+                             RedirectAttributes redirectAttributes) {
+
+        TemplateConfigDto config = TemplateConfigDto.builder()
+                .companyRow(companyRow)
+                .companyCol(companyCol)
+                .codeRow(codeRow)
+                .codeCol(codeCol)
+                .dataStartRow(dataStartRow)
+                .leftTableStartCol(leftTableStartCol)
+                .rightTableStartCol(rightTableStartCol)
+                .colCount(colCount)
+                .build();
+
+        session.setAttribute(CONFIG_KEY, config);
+        redirectAttributes.addFlashAttribute("message", "✅ 템플릿 설정이 저장되었습니다.");
+
+        return "redirect:/excel";
+    }
+
+    /**
+     * 템플릿 다중 파일 업로드 (커스텀 파싱)
+     */
+    @PostMapping("/upload-template")
+    public String uploadTemplate(@RequestParam("files") List<MultipartFile> files,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+
+        // 빈 파일 체크
+        if (files == null || files.isEmpty() || files.stream().allMatch(MultipartFile::isEmpty)) {
+            redirectAttributes.addFlashAttribute("error", "파일을 선택해주세요.");
+            return "redirect:/excel";
+        }
+
+        // 유효한 파일만 필터링
+        List<MultipartFile> validFiles = files.stream()
+                .filter(f -> !f.isEmpty())
+                .toList();
+
+        // 템플릿 설정 가져오기
+        TemplateConfigDto config = (TemplateConfigDto) session.getAttribute(CONFIG_KEY);
+        if (config == null) {
+            config = TemplateConfigDto.defaultConfig();
+        }
+
+        int successCount = 0;
+        int failCount = 0;
+        List<String> failedFiles = new ArrayList<>();
+        ExcelResponseDto mergedData = (ExcelResponseDto) session.getAttribute(SESSION_KEY);
+
+        for (MultipartFile file : validFiles) {
+            try {
+                ExcelResponseDto newData = templateParsingService.parseTemplate(file, config);
+
+                if (mergedData == null || mergedData.getHeaders().isEmpty()) {
+                    // 첫 번째 파일
+                    mergedData = newData;
+                } else {
+                    // 이후 파일들 병합 (헤더는 동일하므로 바로 병합)
+                    mergedData = excelService.mergeData(mergedData, newData);
+                }
+                successCount++;
+
+            } catch (IOException e) {
+                log.error("파일 처리 실패: {}", file.getOriginalFilename(), e);
+                failCount++;
+                failedFiles.add(file.getOriginalFilename() + " (처리 오류)");
+            }
+        }
+
+        // 세션에 저장
+        if (mergedData != null && !mergedData.getHeaders().isEmpty()) {
+            session.setAttribute(SESSION_KEY, mergedData);
+        }
+
+        // 결과 메시지
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("✅ %d개 파일 파싱 완료 (총 %d행)",
+                successCount, mergedData != null ? mergedData.getTotalRows() : 0));
+
+        if (failCount > 0) {
+            message.append(String.format("\n⚠️ %d개 파일 실패", failCount));
+            redirectAttributes.addFlashAttribute("failedFiles", failedFiles);
+        }
+
+        redirectAttributes.addFlashAttribute("message", message.toString());
+
+        return "redirect:/excel";
+    }
+
+    /**
+     * 설정 초기화
+     */
+    @PostMapping("/config/reset")
+    public String resetConfig(HttpSession session, RedirectAttributes redirectAttributes) {
+        session.setAttribute(CONFIG_KEY, TemplateConfigDto.defaultConfig());
+        redirectAttributes.addFlashAttribute("message", "설정이 기본값으로 초기화되었습니다.");
+        return "redirect:/excel";
+    }
+
+    // ===================================================================
+    // 공통 기능 (수정, 다운로드, 초기화)
+    // ===================================================================
 
     /**
      * 테이블 데이터 수정 (AJAX)
